@@ -15,9 +15,9 @@ export const ai = new OpenAI({
 });
 
 export const MODELS = {
-  outline: process.env.MODEL_OUTLINE ?? "anthropic/claude-3.5-haiku",
-  weeks: process.env.MODEL_WEEKS ?? "anthropic/claude-3.5-haiku",
-  lessons: process.env.MODEL_LESSONS ?? "anthropic/claude-3.5-sonnet",
+  outline: process.env.MODEL_OUTLINE ?? "deepseek/deepseek-v4-flash",
+  weeks: process.env.MODEL_WEEKS ?? "deepseek/deepseek-v4-flash",
+  lessons: process.env.MODEL_LESSONS ?? "deepseek/deepseek-v4-flash",
 } as const;
 
 export function assertConfigured() {

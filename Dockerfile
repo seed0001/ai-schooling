@@ -1,0 +1,33 @@
+# syntax=docker/dockerfile:1
+
+FROM node:22-slim AS base
+ENV NODE_ENV=production
+WORKDIR /app
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+# --- deps: install node_modules from lockfile ---
+FROM base AS deps
+COPY package.json package-lock.json ./
+COPY prisma ./prisma
+RUN npm ci --no-audit --no-fund
+
+# --- build: compile the Next.js app ---
+FROM base AS build
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npm run build
+
+# --- runtime ---
+FROM base AS runtime
+ENV PORT=3000
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/.next ./.next
+COPY --from=build /app/public ./public
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/next.config.mjs ./next.config.mjs
+COPY --from=build /app/prisma ./prisma
+EXPOSE 3000
+# Run pending migrations, then start. migrate deploy is idempotent.
+CMD ["sh", "-c", "npx prisma migrate deploy && node node_modules/next/dist/bin/next start -p ${PORT:-3000} -H 0.0.0.0"]

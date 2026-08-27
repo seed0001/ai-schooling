@@ -60,14 +60,20 @@ export async function generateJSON<T extends z.ZodTypeAny>(opts: {
       },
     ];
 
-    const res = await ai.chat.completions.create({
-      model,
-      messages,
-      temperature,
-      response_format: { type: "json_object" },
-    });
-
-    const raw = res.choices[0]?.message?.content ?? "";
+    let raw = "";
+    try {
+      const res = await ai.chat.completions.create({
+        model,
+        messages,
+        temperature,
+        response_format: { type: "json_object" },
+      });
+      raw = res.choices[0]?.message?.content ?? "";
+    } catch {
+      // Not every model/provider on OpenRouter accepts response_format.
+      const res = await ai.chat.completions.create({ model, messages, temperature });
+      raw = res.choices[0]?.message?.content ?? "";
+    }
     try {
       return schema.parse(JSON.parse(extractJSON(raw)));
     } catch (err) {
