@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String       @id @default(cuid())
+  email     String       @unique
+  name      String?
+  createdAt DateTime     @default(now())
+  curricula Curriculum[]
+}
+
+enum EntryMode {
+  FROM_SCRATCH // invent the scope & sequence from the learner profile
+  AROUND_SPINE // build the year around a named textbook / reading list
+  FROM_GOALS   // sequence the user's own topic/skill list across the calendar
+}
+
+enum GenStatus {
+  DRAFT
+  APPROVED
+}
+
+/// Top-level container: one subject, one grade, one school year.
+model Curriculum {
+  id             String          @id @default(cuid())
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title          String
+  subject        String
+  gradeLevel     String
+  entryMode      EntryMode       @default(FROM_SCRATCH)
+  /// Spine/textbook name, or the pasted goal list — depends on entryMode.
+  sourceMaterial String?
+  /// Freeform description of the student or class: interests, pace, prior knowledge, needs.
+  learnerProfile String
+  /// { approach, minutesPerDay, resourcesOnHand, notes }
+  preferences    Json            @default("{}")
+  /// { startDate, endDate, daysPerWeek, weeksOfInstruction, breaks[] }
+  calendar       Json            @default("{}")
+  outlineStatus  GenStatus       @default(DRAFT)
+  units          Unit[]
+  jobs           GenerationJob[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model Unit {
+  id                 String     @id @default(cuid())
+  curriculumId       String
+  curriculum         Curriculum @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  order              Int
+  title              String
+  summary            String
+  bigIdeas           String[]
+  essentialQuestions String[]
+  estWeeks           Int        @default(2)
+  status             GenStatus  @default(DRAFT)
+  weeksGenerated     Boolean    @default(false)
+  weeks              Week[]
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  @@unique([curriculumId, order])
+}
+
+model Week {
+  id               String   @id @default(cuid())
+  unitId           String
+  unit             Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  order            Int
+  focus            String
+  objectives       String[]
+  lessonsGenerated Boolean  @default(false)
+  lessons          Lesson[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([unitId, order])
+}
+
+model Lesson {
+  id              String    @id @default(cuid())
+  weekId          String
+  week            Week      @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  order           Int
+  title           String
+  objective       String
+  materials       String[]
+  hook            String
+  instruction     String
+  practice        String
+  assessment      String
+  differentiation String
+  homework        String?
+  timeEstimateMin Int       @default(45)
+  status          GenStatus @default(DRAFT)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([weekId, order])
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  DONE
+  FAILED
+}
+
+/// Tracks multi-step generation (e.g. "generate every lesson in this unit").
+model GenerationJob {
+  id           String     @id @default(cuid())
+  curriculumId String
+  curriculum   Curriculum @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  /// "outline" | "unit-weeks" | "week-lessons" | "unit-all-lessons"
+  kind         String
+  targetId     String?
+  status       JobStatus  @default(QUEUED)
+  progress     Int        @default(0)
+  total        Int        @default(1)
+  error        String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
