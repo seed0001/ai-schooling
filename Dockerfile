@@ -1,17 +1,16 @@
 # syntax=docker/dockerfile:1
 
 FROM node:22-slim AS base
-ENV NODE_ENV=production
 WORKDIR /app
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends openssl ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
-# --- deps: install node_modules from lockfile ---
+# --- deps: full install (devDeps needed to build: tailwind, typescript, prisma CLI) ---
 FROM base AS deps
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
-RUN npm ci --no-audit --no-fund
+RUN npm ci --include=dev --no-audit --no-fund
 
 # --- build: compile the Next.js app ---
 FROM base AS build
@@ -21,7 +20,9 @@ RUN npm run build
 
 # --- runtime ---
 FROM base AS runtime
+ENV NODE_ENV=production
 ENV PORT=3000
+# node_modules from build still carries the Prisma CLI, used by migrate deploy.
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/.next ./.next
 COPY --from=build /app/public ./public
