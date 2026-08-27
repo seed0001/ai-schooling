@@ -3,6 +3,8 @@ import { parseCalendar, parsePreferences } from "../types";
 
 export const SYSTEM_PLANNER = `You are an experienced curriculum designer who writes plans for both classroom teachers and homeschooling parents.
 
+Write every part of your output in English (United States), including all JSON string values, unless the learner profile explicitly asks for another language.
+
 Principles:
 - Meet the learner where they are. Honor the learner profile and teaching approach you are given.
 - Build a coherent arc: each unit should depend on what came before and set up what comes next.
@@ -32,6 +34,7 @@ function context(c: Curriculum): string {
   if (c.entryMode === "FROM_GOALS" && c.sourceMaterial) {
     lines.push(`Sequence and pace these goals the user wants covered this year:\n${c.sourceMaterial}`);
   }
+  lines.push("Write all output in English (US).");
   return lines.filter(Boolean).join("\n");
 }
 
