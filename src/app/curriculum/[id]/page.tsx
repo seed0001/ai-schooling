@@ -2,8 +2,10 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { parseCalendar, parsePreferences } from "@/lib/types";
+import Link from "next/link";
 import { GenerateAction } from "@/components/GenerateAction";
 import { ApproveOutlineToggle } from "@/components/ApproveOutlineToggle";
+import { DeletePlanButton } from "@/components/DeletePlanButton";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +35,15 @@ export default async function CurriculumPage({ params }: { params: Promise<{ id:
   return (
     <main className="space-y-8">
       <section className="space-y-2">
-        <h1 className="text-2xl font-semibold">{curriculum.title}</h1>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <Link href="/" className="text-xs text-neutral-500 underline">
+              ← All plans
+            </Link>
+            <h1 className="text-2xl font-semibold">{curriculum.title}</h1>
+          </div>
+          <DeletePlanButton id={curriculum.id} title={curriculum.title} redirectTo="/" />
+        </div>
         <p className="text-sm text-neutral-500">
           {curriculum.subject} · {curriculum.gradeLevel} · {prefs.approach} · ~{prefs.minutesPerDay} min/lesson ·{" "}
           {cal.daysPerWeek} days/week · {cal.weeksOfInstruction} weeks

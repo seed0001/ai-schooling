@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { DeletePlanButton } from "@/components/DeletePlanButton";
 
 export const dynamic = "force-dynamic";
 
@@ -27,17 +28,15 @@ export default async function HomePage() {
       ) : (
         <ul className="divide-y divide-neutral-200 rounded-lg border border-neutral-200 dark:divide-neutral-800 dark:border-neutral-800">
           {curricula.map((c) => (
-            <li key={c.id}>
-              <Link
-                href={`/curriculum/${c.id}`}
-                className="block px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900"
-              >
-                <div className="font-medium">{c.title}</div>
+            <li key={c.id} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900">
+              <Link href={`/curriculum/${c.id}`} className="min-w-0 flex-1">
+                <div className="truncate font-medium">{c.title}</div>
                 <div className="text-sm text-neutral-500">
                   {c.subject} · {c.gradeLevel} · {c._count.units} units ·{" "}
                   {c.outlineStatus === "APPROVED" ? "outline approved" : "draft"}
                 </div>
               </Link>
+              <DeletePlanButton id={c.id} title={c.title} />
             </li>
           ))}
         </ul>
