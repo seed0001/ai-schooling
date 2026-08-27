@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { readJson } from "@/lib/http";
 
 type Props = {
   endpoint: string;
@@ -10,26 +11,32 @@ type Props = {
   variant?: "primary" | "secondary";
 };
 
+type DispatchResult = { jobId?: string; status?: string; mode?: string; error?: string };
+type JobResult = { status?: string; progress?: number; total?: number; error?: string };
+
 export function GenerateAction({ endpoint, label, withNote, variant = "secondary" }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [showNote, setShowNote] = useState(false);
 
   async function run() {
     setBusy(true);
     setError(null);
+    setProgress(null);
     try {
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(withNote && note ? { note } : {}),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Generation failed");
+      const data = await readJson<DispatchResult>(res);
+      if (!res.ok || data.error) throw new Error(data.error ?? `Generation failed (${res.status})`);
 
-      if (data.mode === "queue" && data.jobId) {
+      if (data.status === "FAILED") throw new Error(data.error ?? "Generation failed");
+      if (data.status !== "DONE" && data.jobId) {
         await poll(data.jobId);
       }
       setNote("");
@@ -39,19 +46,26 @@ export function GenerateAction({ endpoint, label, withNote, variant = "secondary
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setBusy(false);
+      setProgress(null);
     }
   }
 
   async function poll(jobId: string) {
-    for (let i = 0; i < 240; i++) {
+    // ~20 min ceiling; generating every lesson in a unit is many model calls.
+    for (let i = 0; i < 600; i++) {
       await new Promise((r) => setTimeout(r, 2000));
-      const res = await fetch(`/api/jobs/${jobId}`);
-      if (!res.ok) continue;
-      const job = await res.json();
+      let job: JobResult;
+      try {
+        const res = await fetch(`/api/jobs/${jobId}`, { cache: "no-store" });
+        job = await readJson<JobResult>(res);
+      } catch {
+        continue; // transient network / edge blip — keep polling
+      }
+      if (job.total && job.total > 1) setProgress(`${job.progress ?? 0}/${job.total}`);
       if (job.status === "DONE") return;
-      if (job.status === "FAILED") throw new Error(job.error ?? "Job failed");
+      if (job.status === "FAILED") throw new Error(job.error ?? "Generation job failed");
     }
-    throw new Error("Timed out waiting for generation");
+    throw new Error("Timed out waiting for generation (still running server-side — refresh in a bit)");
   }
 
   const btn =
@@ -72,7 +86,7 @@ export function GenerateAction({ endpoint, label, withNote, variant = "secondary
           </button>
         )}
         <button type="button" onClick={run} disabled={busy} className={btn}>
-          {busy ? "Generating…" : label}
+          {busy ? (progress ? `Generating ${progress}…` : "Generating…") : label}
         </button>
       </div>
       {withNote && showNote && (

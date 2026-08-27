@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { readJson } from "@/lib/http";
 
 type Props = {
   id: string;
@@ -24,10 +25,8 @@ export function DeletePlanButton({ id, title, redirectTo, className }: Props) {
     setError(null);
     try {
       const res = await fetch(`/api/curricula/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? `Delete failed (${res.status})`);
-      }
+      const data = await readJson<{ ok?: boolean; error?: string }>(res);
+      if (!res.ok || data.error) throw new Error(data.error ?? `Delete failed (${res.status})`);
       if (redirectTo) router.push(redirectTo);
       else router.refresh();
     } catch (err) {

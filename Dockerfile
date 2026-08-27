@@ -22,13 +22,16 @@ RUN npm run build
 FROM base AS runtime
 ENV NODE_ENV=production
 ENV PORT=3000
-# node_modules from build still carries the Prisma CLI, used by migrate deploy.
+# node_modules from build still carries the Prisma CLI + tsx, used at start.
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/.next ./.next
 COPY --from=build /app/public ./public
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/next.config.mjs ./next.config.mjs
+COPY --from=build /app/tsconfig.json ./tsconfig.json
 COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/scripts ./scripts
+COPY --from=build /app/src ./src
 EXPOSE 3000
-# Run pending migrations, then start. migrate deploy is idempotent.
-CMD ["sh", "-c", "npx prisma migrate deploy && node node_modules/next/dist/bin/next start -p ${PORT:-3000} -H 0.0.0.0"]
+# start.mjs runs migrations, then the Next server + pg-boss worker together.
+CMD ["node", "scripts/start.mjs"]

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { readJson } from "@/lib/http";
 
 const field = "w-full rounded-md border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700";
 const label = "block text-sm font-medium mb-1";
@@ -42,8 +43,8 @@ export default function NewCurriculumPage() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload),
     });
-    const data = await res.json();
-    if (!res.ok) {
+    const data = await readJson<{ id?: string; error?: string }>(res);
+    if (!res.ok || !data.id) {
       setError(typeof data.error === "string" ? data.error : "Check the form and try again.");
       setSubmitting(false);
       return;
