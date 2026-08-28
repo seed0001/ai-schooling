@@ -2,13 +2,20 @@ import { db } from "../db";
 import { generateOutline } from "../generation/outline";
 import { generateWeeks } from "../generation/weeks";
 import { generateLessons } from "../generation/lessons";
-import type { GenerationPayload } from "./boss";
+import { runPlanJob } from "../plan/runPlanJob";
+import { isPlanPayload, type GenerationPayload } from "./boss";
 
 /**
  * Executes one generation job and keeps its GenerationJob row up to date so the
  * UI can show progress. Safe to call directly (inline mode) or from the worker.
+ * Plan-pipeline jobs (see src/lib/plan) are routed to runPlanJob.
  */
 export async function runGenerationJob(payload: GenerationPayload) {
+  if (isPlanPayload(payload)) {
+    await runPlanJob(payload);
+    return;
+  }
+
   const { jobId } = payload;
   await db.generationJob.update({
     where: { id: jobId },

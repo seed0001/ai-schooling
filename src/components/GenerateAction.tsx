@@ -9,12 +9,20 @@ type Props = {
   label: string;
   withNote?: boolean;
   variant?: "primary" | "secondary";
+  /** Where to poll for job status. Defaults to the old-pipeline jobs route. */
+  jobsPath?: string;
 };
 
 type DispatchResult = { jobId?: string; status?: string; mode?: string; error?: string };
 type JobResult = { status?: string; progress?: number; total?: number; error?: string };
 
-export function GenerateAction({ endpoint, label, withNote, variant = "secondary" }: Props) {
+export function GenerateAction({
+  endpoint,
+  label,
+  withNote,
+  variant = "secondary",
+  jobsPath = "/api/jobs",
+}: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +64,7 @@ export function GenerateAction({ endpoint, label, withNote, variant = "secondary
       await new Promise((r) => setTimeout(r, 2000));
       let job: JobResult;
       try {
-        const res = await fetch(`/api/jobs/${jobId}`, { cache: "no-store" });
+        const res = await fetch(`${jobsPath}/${jobId}`, { cache: "no-store" });
         job = await readJson<JobResult>(res);
       } catch {
         continue; // transient network / edge blip — keep polling

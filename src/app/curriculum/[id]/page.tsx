@@ -37,12 +37,12 @@ export default async function CurriculumPage({ params }: { params: Promise<{ id:
       <section className="space-y-2">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <Link href="/" className="text-xs text-neutral-500 underline">
-              ← All plans
+            <Link href="/curricula" className="text-xs text-neutral-500 underline">
+              ← All curricula
             </Link>
             <h1 className="text-2xl font-semibold">{curriculum.title}</h1>
           </div>
-          <DeletePlanButton id={curriculum.id} title={curriculum.title} redirectTo="/" />
+          <DeletePlanButton id={curriculum.id} title={curriculum.title} redirectTo="/curricula" />
         </div>
         <p className="text-sm text-neutral-500">
           {curriculum.subject} · {curriculum.gradeLevel} · {prefs.approach} · ~{prefs.minutesPerDay} min/lesson ·{" "}

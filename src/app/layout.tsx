@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "AI Schooling",
-  description: "Year-long lesson planning for teachers and homeschoolers.",
+  description: "Plan any kind of teaching or learning — a class, a course, a tutee, or your own study.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               AI Schooling
             </Link>
             <Link
-              href="/curriculum/new"
+              href="/"
               className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white hover:bg-neutral-700 dark:bg-white dark:text-neutral-900"
             >
               New plan

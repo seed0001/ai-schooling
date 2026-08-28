@@ -2,11 +2,24 @@ import PgBoss from "pg-boss";
 
 export const QUEUE = "generation";
 
-export type GenerationPayload =
+export type CurriculumPayload =
   | { jobId: string; kind: "outline"; curriculumId: string }
   | { jobId: string; kind: "unit-weeks"; curriculumId: string; unitId: string; note?: string }
   | { jobId: string; kind: "week-lessons"; curriculumId: string; weekId: string; note?: string }
   | { jobId: string; kind: "unit-all-lessons"; curriculumId: string; unitId: string };
+
+/** Jobs for the audience-agnostic LearningPlan pipeline (see src/lib/plan). */
+export type PlanPayload =
+  | { jobId: string; kind: "plan-outline"; planId: string }
+  | { jobId: string; kind: "plan-module-sessions"; planId: string; moduleId: string; note?: string };
+
+export type GenerationPayload = CurriculumPayload | PlanPayload;
+
+export const PLAN_KINDS = ["plan-outline", "plan-module-sessions"] as const;
+
+export function isPlanPayload(p: GenerationPayload): p is PlanPayload {
+  return (PLAN_KINDS as readonly string[]).includes(p.kind);
+}
 
 let bossPromise: Promise<PgBoss> | null = null;
 

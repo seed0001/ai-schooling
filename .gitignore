@@ -11,3 +11,7 @@ npm-debug.log*
 .vercel
 next-env.d.ts
 /coverage
+
+# Local-only working docs (not for the repo yet)
+ROADMAP.local.md
+*.local.md

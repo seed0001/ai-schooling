@@ -3,13 +3,22 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function ApproveOutlineToggle({ id, approved }: { id: string; approved: boolean }) {
+export function ApproveOutlineToggle({
+  id,
+  approved,
+  endpoint,
+}: {
+  id: string;
+  approved: boolean;
+  /** POST target. Defaults to the old curriculum pipeline. */
+  endpoint?: string;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
   async function toggle() {
     setBusy(true);
-    await fetch(`/api/curricula/${id}/approve-outline`, {
+    await fetch(endpoint ?? `/api/curricula/${id}/approve-outline`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ approved: !approved }),

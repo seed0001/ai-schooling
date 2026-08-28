@@ -8,11 +8,12 @@ datasource db {
 }
 
 model User {
-  id        String       @id @default(cuid())
-  email     String       @unique
+  id        String         @id @default(cuid())
+  email     String         @unique
   name      String?
-  createdAt DateTime     @default(now())
+  createdAt DateTime       @default(now())
   curricula Curriculum[]
+  plans     LearningPlan[]
 }
 
 enum EntryMode {
@@ -111,6 +112,96 @@ enum JobStatus {
   RUNNING
   DONE
   FAILED
+}
+
+// ---------------------------------------------------------------------------
+// Second pipeline: audience-agnostic learning plans.
+//
+// The Curriculum -> Unit -> Week -> Lesson models above bake in a K-12 school
+// year (required gradeLevel, "weeks of instruction", teacher-facing lessons).
+// This pipeline drops all of that: no grade, no forced calendar, a two-level
+// Module -> Session shape, and per-session content stored as free-form
+// {heading, body} segments whose shape follows the plan's `track`.
+// ---------------------------------------------------------------------------
+
+enum PlanTrack {
+  TEACHING      // a class, cohort, workshop, or session series you lead
+  COACHING      // tutor / mentor / parent / trainer working 1:1
+  SELF_DIRECTED // a self-directed study plan — the user is the learner, no teacher
+  COURSE        // designing training for others to deliver, or for an org
+}
+
+model LearningPlan {
+  id            String       @id @default(cuid())
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track         PlanTrack
+  title         String
+  /// What is being learned / taught.
+  topic         String
+  /// Optional free text: who is learning. Blank is fine.
+  audience      String?
+  /// What success looks like — the reason for the plan.
+  goal          String
+  /// { startingPoint, timeBudget, format, approach, resources, constraints, notes }
+  context       Json         @default("{}")
+  /// { pacing, moduleCountHint?, sessionsPerModuleHint?, sessionLengthMin? }
+  shape         Json         @default("{}")
+  outlineStatus GenStatus    @default(DRAFT)
+  modules       PlanModule[]
+  jobs          PlanJob[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model PlanModule {
+  id                String        @id @default(cuid())
+  planId            String
+  plan              LearningPlan  @relation(fields: [planId], references: [id], onDelete: Cascade)
+  order             Int
+  title             String
+  summary           String
+  /// What the learner can do or understand after this module.
+  outcomes          String[]
+  estSessions       Int           @default(3)
+  sessionsGenerated Boolean       @default(false)
+  sessions          PlanSession[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@unique([planId, order])
+}
+
+model PlanSession {
+  id         String     @id @default(cuid())
+  moduleId   String
+  module     PlanModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  order      Int
+  title      String
+  objective  String
+  estMinutes Int        @default(45)
+  /// [{ heading, body }] — an ordered list; headings vary by track.
+  segments   Json       @default("[]")
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@unique([moduleId, order])
+}
+
+/// Same idea as GenerationJob, scoped to a LearningPlan.
+model PlanJob {
+  id        String       @id @default(cuid())
+  planId    String
+  plan      LearningPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  /// "outline" | "module-sessions" | "module-all"
+  kind      String
+  targetId  String?
+  status    JobStatus    @default(QUEUED)
+  progress  Int          @default(0)
+  total     Int          @default(1)
+  error     String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 }
 
 /// Tracks multi-step generation (e.g. "generate every lesson in this unit").
