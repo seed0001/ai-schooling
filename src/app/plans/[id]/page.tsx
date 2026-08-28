@@ -3,7 +3,8 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { parsePlanShape, parseSegments } from "@/lib/types";
-import { TRACK_LABELS } from "@/lib/plan/tracks";
+import { TRACK_LABELS, TRACK_THEME } from "@/lib/plan/tracks";
+import { TrackIcon, Blobs, EmptyArt } from "@/components/graphics";
 import { GenerateAction } from "@/components/GenerateAction";
 import { ApproveOutlineToggle } from "@/components/ApproveOutlineToggle";
 import { DeletePlanButton } from "@/components/DeletePlanButton";
@@ -24,18 +25,44 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
   });
   if (!plan) notFound();
 
+  const theme = TRACK_THEME[plan.track];
   const shape = parsePlanShape(plan.shape);
   const totalSessions = plan.modules.reduce((n, m) => n + m.estSessions, 0);
 
   return (
     <main className="space-y-8">
-      <section className="space-y-2">
+      <section className="card relative isolate overflow-hidden p-6">
+        <Blobs />
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <Link href="/" className="text-xs text-neutral-500 underline">
-              ← Start
+          <div className="space-y-2">
+            <Link href="/" className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-300">
+              ← All plans
             </Link>
-            <h1 className="text-2xl font-semibold">{plan.title}</h1>
+            <div className="flex items-center gap-3">
+              <span className={`grid h-11 w-11 place-items-center rounded-xl border ${theme.chip}`}>
+                <TrackIcon track={plan.track} className="h-6 w-6" />
+              </span>
+              <h1 className="font-display text-2xl font-bold tracking-tight">{plan.title}</h1>
+            </div>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <span className={`badge ${theme.chip}`}>{TRACK_LABELS[plan.track]}</span>
+              <span className="badge border-neutral-200 bg-white/60 text-neutral-600 dark:border-white/10 dark:bg-white/5 dark:text-neutral-300">
+                {plan.topic}
+              </span>
+              {plan.audience && (
+                <span className="badge border-neutral-200 bg-white/60 text-neutral-600 dark:border-white/10 dark:bg-white/5 dark:text-neutral-300">
+                  {plan.audience}
+                </span>
+              )}
+              {shape.pacing && (
+                <span className="badge border-neutral-200 bg-white/60 text-neutral-600 dark:border-white/10 dark:bg-white/5 dark:text-neutral-300">
+                  {shape.pacing}
+                </span>
+              )}
+              <span className="badge border-neutral-200 bg-white/60 text-neutral-600 dark:border-white/10 dark:bg-white/5 dark:text-neutral-300">
+                ~{shape.sessionLengthMin} min/session
+              </span>
+            </div>
           </div>
           <DeletePlanButton
             id={plan.id}
@@ -45,22 +72,17 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
             childrenLabel="its outline, modules, and sessions"
           />
         </div>
-        <p className="text-sm text-neutral-500">
-          {TRACK_LABELS[plan.track]} · {plan.topic}
-          {plan.audience ? ` · ${plan.audience}` : ""}
-          {shape.pacing ? ` · ${shape.pacing}` : ""} · ~{shape.sessionLengthMin} min/session
-        </p>
-        <p className="max-w-2xl text-sm">
-          <span className="font-medium">Goal: </span>
+        <p className="mt-4 max-w-2xl text-sm">
+          <span className="font-semibold">Goal: </span>
           {plan.goal}
         </p>
       </section>
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-center gap-3">
-          <h2 className="text-xl font-semibold">Outline</h2>
+          <h2 className="font-display text-xl font-semibold">Outline</h2>
           {plan.modules.length > 0 && (
-            <span className="text-sm text-neutral-500">
+            <span className="text-sm text-neutral-500 dark:text-neutral-400">
               {plan.modules.length} modules · ~{totalSessions} sessions planned
             </span>
           )}
@@ -82,19 +104,23 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
         </div>
 
         {plan.modules.length === 0 ? (
-          <p className="text-sm text-neutral-500">
-            No outline yet. Generate one to get the module sequence, then drill into each module.
-          </p>
+          <div className="card flex flex-col items-center gap-3 px-6 py-12 text-center">
+            <EmptyArt />
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              No outline yet. Generate one to get the module sequence, then drill into each module.
+            </p>
+          </div>
         ) : (
           <ol className="space-y-4">
             {plan.modules.map((module) => (
-              <li key={module.id} className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+              <li key={module.id} className="card overflow-hidden p-5">
+                <div className={`-mx-5 -mt-5 mb-4 h-1 bg-gradient-to-r ${theme.glow} to-transparent`} />
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
                     <h3 className="font-semibold">
-                      Module {module.order}: {module.title}
+                      <span className={theme.text}>Module {module.order}</span> · {module.title}
                     </h3>
-                    <p className="text-xs text-neutral-500">~{module.estSessions} sessions</p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">~{module.estSessions} sessions</p>
                   </div>
                   <GenerateAction
                     endpoint={`/api/plan-modules/${module.id}/sessions`}
@@ -107,32 +133,38 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
 
                 <p className="mt-2 text-sm">{module.summary}</p>
                 {module.outcomes.length > 0 && (
-                  <div className="mt-2 text-sm">
+                  <div className="mt-3 text-sm">
                     <span className="font-medium">By the end:</span>
-                    <ul className="list-disc pl-5 text-neutral-600 dark:text-neutral-400">
+                    <ul className="mt-1 space-y-1">
                       {module.outcomes.map((o, i) => (
-                        <li key={i}>{o}</li>
+                        <li key={i} className="flex gap-2 text-neutral-600 dark:text-neutral-400">
+                          <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${theme.dot}`} />
+                          {o}
+                        </li>
                       ))}
                     </ul>
                   </div>
                 )}
 
                 {module.sessions.length > 0 && (
-                  <div className="mt-4 space-y-2 border-l-2 border-neutral-200 pl-4 dark:border-neutral-800">
+                  <div className="mt-4 space-y-2">
                     {module.sessions.map((session) => {
                       const segments = parseSegments(session.segments);
                       return (
                         <details
                           key={session.id}
-                          className="rounded-md border border-neutral-200 p-2 text-sm dark:border-neutral-800"
+                          className="surface group p-3 text-sm [&_summary::-webkit-details-marker]:hidden"
                         >
-                          <summary className="cursor-pointer font-medium">
-                            Session {session.order}: {session.title}{" "}
-                            <span className="text-xs font-normal text-neutral-500">
-                              ({session.estMinutes} min)
+                          <summary className="flex cursor-pointer items-center gap-2 font-medium">
+                            <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-md text-xs text-white ${theme.dot}`}>
+                              {session.order}
+                            </span>
+                            {session.title}
+                            <span className="ml-auto text-xs font-normal text-neutral-400">
+                              {session.estMinutes} min
                             </span>
                           </summary>
-                          <dl className="mt-2 space-y-1 text-xs">
+                          <dl className="mt-3 space-y-2 border-t border-neutral-200/70 pt-3 text-xs dark:border-white/10">
                             <Row k="Objective" v={session.objective} />
                             {segments.map((s, i) => (
                               <Row key={i} k={s.heading} v={s.body} />
@@ -154,8 +186,8 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
 
 function Row({ k, v }: { k: string; v: string }) {
   return (
-    <div className="grid grid-cols-[8rem_1fr] gap-2">
-      <dt className="font-medium text-neutral-500">{k}</dt>
+    <div className="grid grid-cols-[8rem_1fr] gap-3">
+      <dt className="font-semibold text-neutral-500 dark:text-neutral-400">{k}</dt>
       <dd className="whitespace-pre-wrap">{v}</dd>
     </div>
   );

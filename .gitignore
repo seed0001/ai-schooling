@@ -15,3 +15,7 @@ next-env.d.ts
 # Local-only working docs (not for the repo yet)
 ROADMAP.local.md
 *.local.md
+
+# Local dev tooling (machine-specific paths)
+.claude/
+scripts/dev.cmd

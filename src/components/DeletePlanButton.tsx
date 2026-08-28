@@ -52,10 +52,7 @@ export function DeletePlanButton({
         type="button"
         onClick={onDelete}
         disabled={busy}
-        className={
-          className ??
-          "rounded-md border border-red-300 px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:hover:bg-red-950"
-        }
+        className={className ?? "btn-danger !px-2.5 !py-1 text-xs"}
       >
         {busy ? "Deleting…" : "Delete"}
       </button>

@@ -32,9 +32,9 @@ export function ApproveOutlineToggle({
       type="button"
       onClick={toggle}
       disabled={busy}
-      className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
+      className={`${approved ? "btn-ghost" : "btn border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300"} !py-1.5 text-xs`}
     >
-      {approved ? "Unlock outline (back to draft)" : "Approve outline"}
+      {approved ? "✓ Approved — unlock" : "Approve outline"}
     </button>
   );
 }

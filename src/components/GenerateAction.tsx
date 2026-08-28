@@ -76,10 +76,7 @@ export function GenerateAction({
     throw new Error("Timed out waiting for generation (still running server-side — refresh in a bit)");
   }
 
-  const btn =
-    variant === "primary"
-      ? "rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white hover:bg-neutral-700 disabled:opacity-50 dark:bg-white dark:text-neutral-900"
-      : "rounded-md border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-900";
+  const btn = `${variant === "primary" ? "btn-primary" : "btn-ghost"} !px-3 !py-1.5 text-xs`;
 
   return (
     <div className="inline-flex flex-col gap-1">
@@ -88,7 +85,7 @@ export function GenerateAction({
           <button
             type="button"
             onClick={() => setShowNote((s) => !s)}
-            className="text-xs text-neutral-500 underline"
+            className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-300"
           >
             {showNote ? "hide note" : "add note"}
           </button>
@@ -102,7 +99,7 @@ export function GenerateAction({
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="e.g. less writing, more hands-on"
-          className="w-64 rounded-md border border-neutral-300 bg-transparent px-2 py-1 text-xs dark:border-neutral-700"
+          className="input w-64 !py-1 text-xs"
         />
       )}
       {error && <p className="max-w-xs text-xs text-red-600">{error}</p>}

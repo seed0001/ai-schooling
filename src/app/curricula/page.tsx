@@ -2,6 +2,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { DeletePlanButton } from "@/components/DeletePlanButton";
+import { EmptyArt } from "@/components/graphics";
 
 export const dynamic = "force-dynamic";
 
@@ -14,35 +15,43 @@ export default async function CurriculaPage() {
   });
 
   return (
-    <main className="space-y-4">
-      <Link href="/" className="text-xs text-neutral-500 underline">
+    <main className="space-y-5">
+      <Link href="/" className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-300">
         ← Start
       </Link>
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Year-long curricula</h1>
-        <Link
-          href="/curriculum/new"
-          className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
-        >
-          New curriculum
+        <div>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Year-long curricula</h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            The original grade-based, school-year planner.
+          </p>
+        </div>
+        <Link href="/curriculum/new" className="btn-ghost">
+          + New curriculum
         </Link>
       </div>
 
       {curricula.length === 0 ? (
-        <p className="text-neutral-500">
-          No curricula yet.{" "}
-          <Link href="/curriculum/new" className="underline">
-            Start one
-          </Link>
-          .
-        </p>
+        <div className="card flex flex-col items-center gap-3 px-6 py-12 text-center">
+          <EmptyArt />
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            No curricula yet.{" "}
+            <Link href="/curriculum/new" className="font-medium text-brand-600 hover:underline dark:text-brand-300">
+              Start one
+            </Link>
+            .
+          </p>
+        </div>
       ) : (
-        <ul className="divide-y divide-neutral-200 rounded-lg border border-neutral-200 dark:divide-neutral-800 dark:border-neutral-800">
+        <ul className="card divide-y divide-neutral-200/70 overflow-hidden dark:divide-white/10">
           {curricula.map((c) => (
-            <li key={c.id} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900">
+            <li
+              key={c.id}
+              className="flex items-center justify-between gap-3 px-4 py-3 transition hover:bg-brand-50/60 dark:hover:bg-white/5"
+            >
               <Link href={`/curriculum/${c.id}`} className="min-w-0 flex-1">
                 <div className="truncate font-medium">{c.title}</div>
-                <div className="text-sm text-neutral-500">
+                <div className="text-sm text-neutral-500 dark:text-neutral-400">
                   {c.subject} · {c.gradeLevel} · {c._count.units} units ·{" "}
                   {c.outlineStatus === "APPROVED" ? "outline approved" : "draft"}
                 </div>

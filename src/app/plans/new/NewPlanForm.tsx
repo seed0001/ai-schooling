@@ -5,10 +5,9 @@ import { useState } from "react";
 import type { PlanTrack } from "@prisma/client";
 import { readJson } from "@/lib/http";
 
-const field =
-  "w-full rounded-md border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700";
-const label = "block text-sm font-medium mb-1";
-const hint = "text-neutral-500 font-normal";
+const field = "input";
+const label = "label";
+const hint = "text-neutral-400 font-normal";
 
 type Copy = {
   titlePlaceholder: string;
@@ -143,32 +142,34 @@ export function NewPlanForm({ track }: { track: PlanTrack }) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-5">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className={label} htmlFor="title">Plan name</label>
-          <input id="title" name="title" required className={field} placeholder={c.titlePlaceholder} />
-        </div>
-        <div>
-          <label className={label} htmlFor="topic">{c.topicLabel}</label>
-          <input id="topic" name="topic" required className={field} placeholder={c.topicPlaceholder} />
-        </div>
-        {c.showAudience && (
-          <div className="sm:col-span-2">
-            <label className={label} htmlFor="audience">
-              {c.audienceLabel} <span className={hint}>(optional)</span>
-            </label>
-            <input id="audience" name="audience" className={field} placeholder={c.audiencePlaceholder} />
+      <div className="card space-y-4 p-5">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className={label} htmlFor="title">Plan name</label>
+            <input id="title" name="title" required className={field} placeholder={c.titlePlaceholder} />
           </div>
-        )}
+          <div>
+            <label className={label} htmlFor="topic">{c.topicLabel}</label>
+            <input id="topic" name="topic" required className={field} placeholder={c.topicPlaceholder} />
+          </div>
+          {c.showAudience && (
+            <div className="sm:col-span-2">
+              <label className={label} htmlFor="audience">
+                {c.audienceLabel} <span className={hint}>(optional)</span>
+              </label>
+              <input id="audience" name="audience" className={field} placeholder={c.audiencePlaceholder} />
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label className={label} htmlFor="goal">{c.goalLabel}</label>
+          <textarea id="goal" name="goal" rows={2} required className={field} placeholder={c.goalPlaceholder} />
+        </div>
       </div>
 
-      <div>
-        <label className={label} htmlFor="goal">{c.goalLabel}</label>
-        <textarea id="goal" name="goal" rows={2} required className={field} placeholder={c.goalPlaceholder} />
-      </div>
-
-      <fieldset className="grid gap-4 sm:grid-cols-2">
-        <legend className="mb-2 text-sm font-semibold">Context <span className={hint}>(all optional)</span></legend>
+      <fieldset className="card grid gap-4 p-5 sm:grid-cols-2">
+        <legend className="px-1 text-sm font-semibold">Context <span className={hint}>(all optional)</span></legend>
         <div className="sm:col-span-2">
           <label className={label} htmlFor="startingPoint">{c.startingPointLabel}</label>
           <input id="startingPoint" name="startingPoint" className={field} />
@@ -199,8 +200,8 @@ export function NewPlanForm({ track }: { track: PlanTrack }) {
         </div>
       </fieldset>
 
-      <fieldset className="grid gap-4 sm:grid-cols-4">
-        <legend className="mb-2 text-sm font-semibold">Shape <span className={hint}>(optional)</span></legend>
+      <fieldset className="card grid gap-4 p-5 sm:grid-cols-4">
+        <legend className="px-1 text-sm font-semibold">Shape <span className={hint}>(optional)</span></legend>
         <div className="sm:col-span-2">
           <label className={label} htmlFor="pacing">Pacing</label>
           <input id="pacing" name="pacing" className={field} placeholder={c.pacingPlaceholder} />
@@ -221,12 +222,8 @@ export function NewPlanForm({ track }: { track: PlanTrack }) {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-700 disabled:opacity-50 dark:bg-white dark:text-neutral-900"
-      >
-        {submitting ? "Creating…" : "Create plan"}
+      <button type="submit" disabled={submitting} className="btn-primary !px-5 !py-2.5">
+        {submitting ? "Creating…" : "Create plan →"}
       </button>
     </form>
   );

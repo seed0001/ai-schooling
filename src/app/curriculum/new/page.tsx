@@ -1,11 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { readJson } from "@/lib/http";
 
-const field = "w-full rounded-md border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700";
-const label = "block text-sm font-medium mb-1";
+const field = "input";
+const label = "label";
 
 export default function NewCurriculumPage() {
   const router = useRouter();
@@ -54,9 +55,14 @@ export default function NewCurriculumPage() {
 
   return (
     <main className="space-y-6">
-      <h1 className="text-2xl font-semibold">New plan</h1>
+      <div>
+        <Link href="/curricula" className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-300">
+          ← All curricula
+        </Link>
+        <h1 className="font-display text-2xl font-bold tracking-tight">New curriculum</h1>
+      </div>
       <form onSubmit={onSubmit} className="space-y-5">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="card grid gap-4 p-5 sm:grid-cols-2">
           <div>
             <label className={label} htmlFor="title">Plan name</label>
             <input id="title" name="title" required className={field} placeholder="5th Grade Math 2026-27" />
@@ -79,29 +85,31 @@ export default function NewCurriculumPage() {
           </div>
         </div>
 
-        <div>
-          <label className={label} htmlFor="sourceMaterial">
-            Source material <span className="text-neutral-500">(textbook name, reading list, or your goal list — if any)</span>
-          </label>
-          <textarea id="sourceMaterial" name="sourceMaterial" rows={3} className={field} />
+        <div className="card space-y-4 p-5">
+          <div>
+            <label className={label} htmlFor="sourceMaterial">
+              Source material <span className="font-normal text-neutral-400">(textbook name, reading list, or your goal list — if any)</span>
+            </label>
+            <textarea id="sourceMaterial" name="sourceMaterial" rows={3} className={field} />
+          </div>
+
+          <div>
+            <label className={label} htmlFor="learnerProfile">
+              Learner profile <span className="font-normal text-neutral-400">(the student or class: interests, pace, prior knowledge, needs)</span>
+            </label>
+            <textarea
+              id="learnerProfile"
+              name="learnerProfile"
+              rows={4}
+              required
+              className={field}
+              placeholder="One 10-year-old. Strong reader, reluctant with multi-step problems. Loves building and Minecraft. Comfortable with multiplication facts, shaky on fractions."
+            />
+          </div>
         </div>
 
-        <div>
-          <label className={label} htmlFor="learnerProfile">
-            Learner profile <span className="text-neutral-500">(the student or class: interests, pace, prior knowledge, needs)</span>
-          </label>
-          <textarea
-            id="learnerProfile"
-            name="learnerProfile"
-            rows={4}
-            required
-            className={field}
-            placeholder="One 10-year-old. Strong reader, reluctant with multi-step problems. Loves building and Minecraft. Comfortable with multiplication facts, shaky on fractions."
-          />
-        </div>
-
-        <fieldset className="grid gap-4 sm:grid-cols-2">
-          <legend className="mb-2 text-sm font-semibold">Teaching preferences</legend>
+        <fieldset className="card grid gap-4 p-5 sm:grid-cols-2">
+          <legend className="px-1 text-sm font-semibold">Teaching preferences</legend>
           <div>
             <label className={label} htmlFor="approach">Approach</label>
             <input id="approach" name="approach" className={field} placeholder="hands-on, mastery-based" />
@@ -120,8 +128,8 @@ export default function NewCurriculumPage() {
           </div>
         </fieldset>
 
-        <fieldset className="grid gap-4 sm:grid-cols-4">
-          <legend className="mb-2 text-sm font-semibold">Calendar</legend>
+        <fieldset className="card grid gap-4 p-5 sm:grid-cols-4">
+          <legend className="px-1 text-sm font-semibold">Calendar</legend>
           <div>
             <label className={label} htmlFor="startDate">Start</label>
             <input id="startDate" name="startDate" type="date" defaultValue="2026-09-08" className={field} />
@@ -142,12 +150,8 @@ export default function NewCurriculumPage() {
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-700 disabled:opacity-50 dark:bg-white dark:text-neutral-900"
-        >
-          {submitting ? "Creating…" : "Create plan"}
+        <button type="submit" disabled={submitting} className="btn-primary !px-5 !py-2.5">
+          {submitting ? "Creating…" : "Create curriculum →"}
         </button>
       </form>
     </main>
